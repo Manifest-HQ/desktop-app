@@ -34,7 +34,8 @@ const createWindow = () => {
     },
   });
 
-  win.loadURL("https://platform.manifest-hq.com/");
+  // win.loadURL("https://platform.manifest-hq.com/");
+  win.loadURL("https://platform.manifest-hq.com");
 
   // Inject a custom class to the body element
   win.webContents.on("did-finish-load", () => {
@@ -111,12 +112,15 @@ function handleAuthRedirect(win) {
   const protocol = "manifest";
   app.setAsDefaultProtocolClient(protocol);
 
-  app.on("open-url", (event, url) => {
-    event.preventDefault();
-    const urlObj = new URL(url);
-    if (urlObj.protocol === `${protocol}:`) {
+  function processUrl(url) {
+    if (url.startsWith(`${protocol}:`)) {
       win.webContents.send("auth-callback", url);
     }
+  }
+
+  app.on("open-url", (event, url) => {
+    event.preventDefault();
+    processUrl(url);
   });
 
   // Handle the protocol on Windows
