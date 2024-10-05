@@ -25,7 +25,7 @@ const createWindow = () => {
     frame: false, // Disable default frame
     transparent: false, // Enable transparency
     titleBarStyle: "hidden",
-    trafficLightPosition: { x: 20, y: 40 }, // Adjust as needed
+    trafficLightPosition: { x: 20, y: 20 }, // Adjust as needed
     icon: "./assets/logo.png", // Add this line
     webPreferences: {
       nodeIntegration: false,
@@ -90,13 +90,13 @@ app.on("window-all-closed", () => {
 });
 
 function checkUpdates() {
-  const server = "https://download.manifest-hq.com/update/";
+  const server = "https://update.electronjs.org";
+  const feed = `${server}/Manifest-HQ/desktop-app/${
+    process.platform
+  }/${app.getVersion()}`;
 
-  var platform = "osx"; // TODO add windows and linux
-  var version = app.getVersion();
-
-  autoUpdater.setFeedURL(server + platform + "/" + version);
-  console.log(server + platform + "/" + version);
+  autoUpdater.setFeedURL(feed);
+  console.log(feed);
 
   // Check for updates immediately
   autoUpdater.checkForUpdates();
