@@ -1,28 +1,66 @@
-const { app, BrowserWindow } = require("electron");
+const { app, autoUpdater, BrowserWindow, shell } = require("electron");
 const path = require("node:path");
-
-require("update-electron-app")();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient("manifest", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient("manifest");
+}
+
 const createWindow = () => {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+  win = new BrowserWindow({
+    width: 1600,
+    height: 1000,
+    minWidth: 1000, // Set minimum width
+    minHeight: 800, // Set minimum height
+    frame: false, // Disable default frame
+    transparent: false, // Enable transparency
+    titleBarStyle: "hidden",
+    trafficLightPosition: { x: 20, y: 40 }, // Adjust as needed
+    icon: "./assets/logo.png", // Add this line
     webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
+  win.loadURL("https://platform.manifest-hq.com/");
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Inject a custom class to the body element
+  win.webContents.on("did-finish-load", () => {
+    win.webContents.executeJavaScript(`
+      document.body.classList.add('electron-app')
+    `);
+  });
+
+  // Optional: Set the background color with alpha for transparency
+  win.setBackgroundColor("#FAF9F7");
+
+  win.webContents.on("will-navigate", (event, url) => {
+    if (url !== win.webContents.getURL()) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  // Handle external links
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  // Handle custom protocol for auth redirect
+  handleAuthRedirect(win);
 };
 
 // This method will be called when Electron has finished
@@ -38,6 +76,8 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
+
+  checkUpdates();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -48,6 +88,45 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+function checkUpdates() {
+  const server = "https://download.manifest-hq.com/update/";
+
+  var platform = "osx"; // TODO add windows and linux
+  var version = app.getVersion();
+
+  autoUpdater.setFeedURL(server + platform + "/" + version);
+  console.log(server + platform + "/" + version);
+
+  // Check for updates immediately
+  autoUpdater.checkForUpdates();
+
+  // Check for updates every 10 minutes
+  setInterval(() => {
+    autoUpdater.checkForUpdates();
+  }, 10 * 60 * 1000);
+}
+
+function handleAuthRedirect(win) {
+  const protocol = "manifest";
+  app.setAsDefaultProtocolClient(protocol);
+
+  app.on("open-url", (event, url) => {
+    event.preventDefault();
+    const urlObj = new URL(url);
+    if (urlObj.protocol === `${protocol}:`) {
+      win.webContents.send("auth-callback", url);
+    }
+  });
+
+  // Handle the protocol on Windows
+  app.on("second-instance", (event, commandLine) => {
+    const url = commandLine.pop();
+    if (url.startsWith(`${protocol}:`)) {
+      win.webContents.send("auth-callback", url);
+    }
+  });
+}
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

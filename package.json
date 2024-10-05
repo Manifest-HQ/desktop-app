@@ -1,14 +1,14 @@
 {
-  "name": "desktop-app",
-  "productName": "desktop-app",
-  "version": "1.0.0",
+  "name": "manifest-platform",
+  "productName": "Manifest",
+  "version": "1.0.6",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "publish": "dotenv -- node update-package-version.js && electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
   "devDependencies": {
@@ -21,6 +21,7 @@
     "@electron-forge/plugin-fuses": "^7.5.0",
     "@electron-forge/publisher-github": "^7.5.0",
     "@electron/fuses": "^1.8.0",
+    "dotenv-cli": "^7.4.2",
     "electron": "32.1.2"
   },
   "keywords": [],
@@ -30,7 +31,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1",
-    "update-electron-app": "^3.0.0"
+    "electron-squirrel-startup": "^1.0.1"
   }
 }

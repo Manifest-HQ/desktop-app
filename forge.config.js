@@ -2,9 +2,6 @@ const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 
 module.exports = {
-  packagerConfig: {
-    asar: true,
-  },
   rebuildConfig: {},
   makers: [
     {
@@ -25,6 +22,7 @@ module.exports = {
     },
   ],
   packagerConfig: {
+    asar: true,
     appBundleId: "com.manifest-hq.platform",
     osxSign: {}, // object must exist even if empty
     osxNotarize: {
@@ -60,7 +58,8 @@ module.exports = {
           owner: "Manifest-HQ",
           name: "desktop-app",
         },
-        prerelease: true,
+        prerelease: false,
+        draft: false,
       },
     },
   ],
