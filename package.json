@@ -1,7 +1,7 @@
 {
   "name": "manifest-platform",
   "productName": "Manifest",
-  "version": "1.2.4",
+  "version": "1.2.6",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
